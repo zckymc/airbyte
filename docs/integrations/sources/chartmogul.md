@@ -17,7 +17,7 @@ This page contains the setup guide and reference information for the [Chartmogul
 3. Select **Chartmogul** from the list of available sources.
 4. Enter a **Source name**.
 4. Enter the **API key** that you obtained.
-5. Enter a **Start date**. The **Start date** must be formatted as a UTC timestamp in the following format: `YYYY-MM-DD"T"HH:MM:SS"Z"`. For example, an input of `2017-01-25T06:30:00Z` will signify a start date of 6:30 AM UTC on January 25th, 2017. When feasible, any data before this date will not be replicated. 
+5. Enter a **Start date**. The **Start date** must be formatted as a UTC date and time in the following format: `YYYY-MM-DD"T"HH:MM:SS"Z"`. For example, an input of `2017-01-25T06:30:00Z` will signify a start date of 6:30 AM UTC on January 25th, 2017. When feasible, any data before this date will not be replicated.
 
 :::note
 The **Start date** will only apply to the `Activities` stream. The `Customers` endpoint does not provide a way to filter by the creation or update dates.
