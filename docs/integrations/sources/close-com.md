@@ -1,25 +1,30 @@
 # Close.com
 
+This page contains the setup guide and reference information for the [Close](https://www.close.com/) source connector.
+
 ## Prerequisites
 
 * Close.com Account
 * Close.com API Key
 
-Visit the [Close.com API Keys page](https://app.close.com/settings/api/) in the Close.com dashboard to access the secret key for your account. Secret key will be prefixed with `api_`.
-See [this guide](https://help.close.com/docs/api-keys) if you need to create a new one.
+Visit the [Close API Keys page](https://app.close.com/settings/developer/api-keys/) in the Close dashboard to access the secret key for your account. The secret key will be prefixed with `api_`. If you need to create a new API key, refer to the [official docs](https://help.close.com/docs/api-keys).
 
 We recommend creating a restricted key specifically for Airbyte access. This will allow you to control which resources Airbyte should be able to access. For ease of use, we recommend using read permissions for all resources and configuring which resource to replicate in the Airbyte UI.
 
 ## Setup guide
 
-1. [Log into your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account.
-2. In the left navigation bar, click **Sources**. In the top-right corner, click **+new source**.
-3. On the Set up the source page, enter the name for the Close.com connector and select **Close.com** from the Source type dropdown.
-4. Fill in the API Key and Start date fields and click **Set up source**.
+1. [Log in to your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account.
+2. In the left navigation bar, click **Sources**. 
+3. In the top-right corner, click **+ New source**.
+4. Find and select **Close.com** from the list of available sources.
+5. Enter a **Source name**.
+6. In the **api_key** field, enter your Close.com API Key
+7. *Optional* - In the **start_date** field, enter a starting date cutoff for the data you want to replicate.  Leaving this field blank will replicate all data.
+8. Click **Set up source** and wait for the tests to complete.
 
 ## Supported sync modes
 
-The Close.com source supports both Full Refresh and Incremental syncs. You can choose if this connector will copy only the new or updated data, or all rows in the tables and columns you set up for replication, every time a sync is run.
+The Close source supports both Full Refresh and Incremental syncs. You can choose if this connector will copy only the new or updated data, or all rows in the tables and columns you set up for replication, every time a sync is run.
 
 ## Supported Streams
 
