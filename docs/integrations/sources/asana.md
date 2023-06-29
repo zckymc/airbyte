@@ -4,7 +4,7 @@ This page contains the setup guide and reference information for the [Asana](htt
 
 ## Prerequisites
 
-Authentication for the Asana source can be handled via Oauth (Recommended) or using a temporary Personal Access Token. To obtain a Personal Access Token for your Asana account, please [follow these steps](https://developers.asana.com/docs/personal-access-token) .
+Authentication for the Asana source can be handled via Oauth (Recommended) or using a Personal Access Token. To obtain a Personal Access Token for your Asana account, please [follow these steps](https://developers.asana.com/docs/personal-access-token) .
 
 ## Setup guide
 
