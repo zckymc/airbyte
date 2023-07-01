@@ -1,34 +1,51 @@
 # Close.com
 
-This page contains the setup guide and reference information for the [Close](https://www.close.com/) source connector.
+This page contains the setup guide and reference information for the [Close.com](https://www.close.com/) source connector.
 
 ## Prerequisites
 
-* Close.com Account
 * Close.com API Key
-
-Visit the [Close API Keys page](https://app.close.com/settings/developer/api-keys/) in the Close dashboard to access the secret key for your account. The secret key will be prefixed with `api_`. If you need to create a new API key, refer to the [official docs](https://help.close.com/docs/api-keys).
 
 We recommend creating a restricted key specifically for Airbyte access. This will allow you to control which resources Airbyte should be able to access. For ease of use, we recommend using read permissions for all resources and configuring which resource to replicate in the Airbyte UI.
 
 ## Setup guide
 
-1. [Log in to your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account.
-2. In the left navigation bar, click **Sources**. 
+### Step 1: Setup Close.com API Key
+1. [Log in to your Close.com](https://www.close.com) account.
+2. At the bottom of the left navbar, select **Settings**.
+3. In the left menu, select **Developer**.
+4. At the top of the page, click **+ New API Key**.
+
+:::caution
+For security purposes, the API Key will only be displayed once. Be sure to copy and store the key in a secure location.
+:::
+
+For further reading on creating and maintaining Close.com API keys, refer to the 
+[official documentation](https://help.close.com/docs/api-keys-oauth).
+
+### Step 2: Setup the Close.com connector in Airbyte
+
+1. [Log in to your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account, or navigate to the Airbyte Open Source dashboard.
+2. In the left navigation bar, click **Sources**.
+
+:::tip
+If this is your first time setting up an Airbyte source, skip the next step and proceed to step 4.
+:::
+
 3. In the top-right corner, click **+ New source**.
 4. Find and select **Close.com** from the list of available sources.
-5. Enter a **Source name**.
-6. In the **api_key** field, enter your Close.com API Key
+5. Enter a **Source name** of your choosing.
+6. In the **api_key** field, enter your Close.com **API Key**
 7. *Optional* - In the **start_date** field, enter a starting date cutoff for the data you want to replicate.  Leaving this field blank will replicate all data.
 8. Click **Set up source** and wait for the tests to complete.
 
 ## Supported sync modes
 
-The Close source supports both Full Refresh and Incremental syncs. You can choose if this connector will copy only the new or updated data, or all rows in the tables and columns you set up for replication, every time a sync is run.
+The Close.com source supports both **Full Refresh** and **Incremental** syncs. You can choose if this connector will copy only the new/updated data, or all rows in the tables and columns you set up for replication. These settings will take effect every time a sync is run.
 
-## Supported Streams
+## Supported streams
 
-This Source is capable of syncing the following core Streams:
+This source is capable of syncing the following core streams:
 
 * [Leads](https://developer.close.com/#leads) \(Incremental\)
 * [Created Activities](https://developer.close.com/#activities-list-or-filter-all-created-activities) \(Incremental\)
@@ -78,9 +95,9 @@ This Source is capable of syncing the following core Streams:
 
 ### Notes
 
-Leads, Events Incremental streams use `date_updated` field as a cursor. All other Incremental streams use `date_created` field for the same purpose.
+Leads and Events Incremental streams use the `date_updated` field as a cursor. All other Incremental streams use the `date_created` field for the same purpose.
 
-`SendAs` stream requires payment.
+The `SendAs` stream requires payment.
 
 ### Data type mapping
 
@@ -88,7 +105,8 @@ The [Close.com API](https://developer.close.com/) uses the same [JSONSchema](htt
 
 ### Performance considerations
 
-The Close.com Connector has rate limit. There are 60 RPS for Organizations. You can find detailed info [here](https://developer.close.com/#ratelimits).
+The Close.com connector is subject to rate limits. For more information on this topic,
+[click here](https://developer.close.com/topics/rate-limits/).
 
 ## Changelog
 
