@@ -10,7 +10,7 @@ We recommend creating a restricted key specifically for Airbyte access. This wil
 
 ## Setup guide
 
-### Step 1: Setup Close.com API Key
+### Step 1: Set up Close.com API Key
 1. [Log in to your Close.com](https://www.close.com) account.
 2. At the bottom of the left navbar, select **Settings**.
 3. In the left menu, select **Developer**.
@@ -23,7 +23,7 @@ For security purposes, the API Key will only be displayed once. Be sure to copy 
 For further reading on creating and maintaining Close.com API keys, refer to the 
 [official documentation](https://help.close.com/docs/api-keys-oauth).
 
-### Step 2: Setup the Close.com connector in Airbyte
+### Step 2: Set up the Close.com connector in Airbyte
 
 1. [Log in to your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account, or navigate to the Airbyte Open Source dashboard.
 2. In the left navigation bar, click **Sources**.
