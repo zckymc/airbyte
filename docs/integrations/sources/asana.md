@@ -1,34 +1,64 @@
 # Asana
 
-This page contains the setup guide and reference information for the Asana source connector.
+This page contains the setup guide and reference information for the [Asana](https://asana.com/) source connector.
 
 ## Prerequisites
 
-Please follow these [steps](https://developers.asana.com/docs/personal-access-token) to obtain Personal Access Token for your account.
+Authentication for the Asana source can be handled via Oauth (Recommended for Airbyte Cloud users) or using a Personal Access Token.
+To obtain a Personal Access Token for your Asana account, please 
+[follow these steps](https://developers.asana.com/docs/personal-access-token).
+
+#### For Airbyte Open Source users:
+
+If you intend to authenticate using Oauth on Airbyte Open Source, you will need to acquire the following from your Asana account:
+- `client_id`
+- `client_secret`
+- `refresh_token`
+
+:::caution
+Acquiring the `refresh_token` can be a challenging and lengthy process. You will need working knowledge of http protocols, dev tools and URI encoding, as well as the use of an API testing app like Postman.
+
+For detailed instructions on the steps needed to acquire a `refresh_token`, please refer to the 
+[Asana documentation](https://developers.asana.com/docs/oauth).
+:::
+
+
 
 ## Setup guide
+### Set up the Asana source connector in Airbyte
+1. [Log in to your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account, or navigate to the Airbyte Open Source dashboard.
+2. In the left navigation bar, click **Sources**.
 
-## Step 1: Set up the Asana connector in Airbyte
+:::tip
+If this is your first time setting up a source, skip the next step and proceed to step 4.
+:::
 
-### For Airbyte Cloud:
+3. In the top-right corner, click **+ New source**. 
+4. Find and select **Asana** from the list of available sources.
+4. Enter a **Source name** of your choosing for the connector.
 
-1. [Log into your Airbyte Cloud](https://cloud.airbyte.com/workspaces) account.
-2. In the left navigation bar, click **Sources**. In the top-right corner, click **+new source**.
-3. Set the name for your source
-4. Enter your `personal_access_token`
-5. Click **Set up source**
+### Select an Authentication method
+#### For Airbyte Cloud users:
+1. To authenticate, select *one* of the two options below:
+    - **Recommended:** From the dropdown menu, select **Authenticate via Asana (Oauth)** and click **Authenticate your Asana account**.
+    - From the dropdown menu, select **Authenticate with Personal Access Token** and enter your Personal Access Token.
+    
+2. Click **Set up source** and wait for the tests to complete.
 
-### For Airbyte OSS:
+#### For Airbyte Open Source users:
+1. To authenticate, select *one* of the two options below:
+    - From the dropdown menu, select **Authenticate via Asana (Oauth)** and enter your
+  `client_id`, `client_secret`, and `refresh_token`.
+    - From the dropdown menu, select **Authenticate with Personal Access Token** and enter your 
+  Personal Access Token.
 
-1. Navigate to the Airbyte Open Source dashboard
-2. In the left navigation bar, click **Sources**. In the top-right corner, click **+new source**.
-3. Set the name for your source
-4. Enter your `personal_access_token`
-5. Click **Set up source**
+
+2. Click **Set up source** and wait for the tests to complete.
 
 ## Supported sync modes
 
-The Asana source connector supports the following [sync modes](https://docs.airbyte.com/cloud/core-concepts#connection-sync-modes):
+The Asana source connector supports the following 
+[sync modes](https://docs.airbyte.com/cloud/core-concepts#connection-sync-modes):
 
 | Feature           | Supported? |
 | :---------------- | :--------- |
@@ -36,7 +66,7 @@ The Asana source connector supports the following [sync modes](https://docs.airb
 | Incremental Sync  | No         |
 | Namespaces        | No         |
 
-## Supported Streams
+## Supported streams
 
 - [Custom fields](https://developers.asana.com/docs/custom-fields)
 - [Projects](https://developers.asana.com/docs/projects)
@@ -51,9 +81,10 @@ The Asana source connector supports the following [sync modes](https://docs.airb
 
 ## Performance considerations
 
-The connector is restricted by normal Asana [requests limitation](https://developers.asana.com/docs/rate-limits).
+The connector is restricted by normal Asana request limitations. For more information on this topic, refer to the 
+[Asana documentation](https://developers.asana.com/docs/rate-limits).
 
-## Data type map
+## Data type mapping
 
 | Integration Type         | Airbyte Type |
 | :----------------------- | :----------- |
