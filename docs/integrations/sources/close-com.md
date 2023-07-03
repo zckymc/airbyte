@@ -10,14 +10,14 @@ We recommend creating a restricted key specifically for Airbyte access. This wil
 
 ## Setup guide
 
-### Step 1: Set up Close.com API Key
+### Step 1: Set up your Close.com API Key
 1. [Log in to your Close.com](https://www.close.com) account.
 2. At the bottom of the left navbar, select **Settings**.
 3. In the left menu, select **Developer**.
 4. At the top of the page, click **+ New API Key**.
 
 :::caution
-For security purposes, the API Key will only be displayed once. Be sure to copy and store the key in a secure location.
+For security purposes, the API Key will only be displayed once upon creation. Be sure to copy and store the key in a secure location.
 :::
 
 For further reading on creating and maintaining Close.com API keys, refer to the 
