@@ -35,7 +35,7 @@ If this is your first time setting up a source, skip the next step and proceed t
 
 3. In the top-right corner, click **+ New source**. 
 4. Find and select **Asana** from the list of available sources.
-4. Enter a **Source name** of your choosing for the connector.
+5. Enter a **Source name** of your choosing for the connector.
 
 ### Select an Authentication method
 #### For Airbyte Cloud users:
