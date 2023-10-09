@@ -7,6 +7,7 @@ package io.airbyte.cdk.integrations.destination_async;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import io.airbyte.protocol.models.v0.StreamDescriptor;
 
 /**
  * Responsible for managing buffer memory across multiple queues in a thread-safe way. This does not
@@ -93,4 +94,19 @@ public class GlobalMemoryManager {
     }
   }
 
+  public void ghettoLog(final String msg) {
+    log.info(msg);
+  }
+
+  public void freeLog(final long maxMemoryBytes, final long batchSizeBytes, final StreamDescriptor streamDescriptor) {
+        log.info(
+            "Empty buffer cleanup: queue max - {} - batch - {} slop - {} for stream - {} | {}",
+            maxMemoryBytes,
+            batchSizeBytes,
+            maxMemoryBytes - batchSizeBytes,
+            streamDescriptor.getNamespace(),
+            streamDescriptor.getName());
+
+        free(maxMemoryBytes - batchSizeBytes);
+  }
 }

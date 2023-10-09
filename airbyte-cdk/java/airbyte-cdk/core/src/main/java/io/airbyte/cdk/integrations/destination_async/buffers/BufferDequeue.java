@@ -74,12 +74,17 @@ public class BufferDequeue {
         }
       }
 
+      memoryManager.ghettoLog(String.format("Queue size is: %d, name - %s|%s", queue.size(), "" + streamDescriptor.getNamespace(), streamDescriptor.getName()));
+
       if (queue.isEmpty()) {
         buffers.remove(streamDescriptor);
         // free the remainder, leaving the read bytes to be freed by the batch flush
-        final var slop = queue.getMaxMemoryUsage() - bytesRead.get();
-        memoryManager.free(slop);
+//        final var slop = queue.getMaxMemoryUsage() - bytesRead.get();
+//        memoryManager.free(slop);
+        memoryManager.freeLog(queue.getMaxMemoryUsage(), bytesRead.get(), streamDescriptor);
       } else {
+        memoryManager.ghettoLog(String.format("Not-empty: bytes - %d, records: %d", bytesRead.get(), output.size()));
+
         queue.addMaxMemory(-bytesRead.get());
       }
 
