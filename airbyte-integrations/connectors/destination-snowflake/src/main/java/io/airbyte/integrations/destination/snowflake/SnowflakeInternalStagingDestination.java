@@ -131,6 +131,8 @@ public class SnowflakeInternalStagingDestination extends AbstractJdbcDestination
       }
     }
 
+    LOGGER.info("I picked up new changes.");
+
     final SnowflakeSqlGenerator sqlGenerator = new SnowflakeSqlGenerator();
     final ParsedCatalog parsedCatalog;
     final TyperDeduper typerDeduper;
@@ -165,6 +167,8 @@ public class SnowflakeInternalStagingDestination extends AbstractJdbcDestination
   }
 
   private static long getSnowflakeBufferMemoryLimit() {
+    LOGGER.info("Max available runtime memory {}", Runtime.getRuntime().maxMemory());
+
     return (long) (Runtime.getRuntime().maxMemory() * 0.5);
   }
 
