@@ -61,7 +61,7 @@ public class GlobalMemoryManager {
    *
    * @return the size of the allocated block, in bytes
    */
-  public synchronized long requestMemory() {
+  public synchronized long requestMemory(final String name) {
     // todo(davin): what happens if the incoming record is larger than 30MB?
     if (currentMemoryBytes.get() >= maxMemoryBytes) {
       return 0L;
@@ -72,10 +72,11 @@ public class GlobalMemoryManager {
     final var toAllocateBytes = Math.min(freeMem, BLOCK_SIZE_BYTES);
     currentMemoryBytes.addAndGet(toAllocateBytes);
 
-    log.debug("Memory Requested: max: {}, allocated: {}, allocated in this request: {}",
+    log.info("Memory Requested: max: {}, allocated: {}, allocated in this request: {}, for {}",
         FileUtils.byteCountToDisplaySize(maxMemoryBytes),
         FileUtils.byteCountToDisplaySize(currentMemoryBytes.get()),
-        FileUtils.byteCountToDisplaySize(toAllocateBytes));
+        FileUtils.byteCountToDisplaySize(toAllocateBytes),
+        name);
     return toAllocateBytes;
   }
 

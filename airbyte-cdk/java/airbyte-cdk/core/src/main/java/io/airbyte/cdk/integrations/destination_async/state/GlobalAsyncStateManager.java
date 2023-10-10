@@ -81,7 +81,7 @@ public class GlobalAsyncStateManager {
 
   public GlobalAsyncStateManager(final GlobalMemoryManager memoryManager) {
     this.memoryManager = memoryManager;
-    memoryAllocated = new AtomicLong(memoryManager.requestMemory());
+    memoryAllocated = new AtomicLong(memoryManager.requestMemory("init"));
     memoryUsed = new AtomicLong();
   }
 
@@ -286,7 +286,7 @@ public class GlobalAsyncStateManager {
   private void allocateMemoryToState(final long sizeInBytes) {
     if (memoryAllocated.get() < memoryUsed.get() + sizeInBytes) {
       while (memoryAllocated.get() < memoryUsed.get() + sizeInBytes) {
-        memoryAllocated.addAndGet(memoryManager.requestMemory());
+        memoryAllocated.addAndGet(memoryManager.requestMemory("state"));
         try {
           LOGGER.debug("Insufficient memory to store state message. Allocated: {}, Used: {}, Size of State Msg: {}, Needed: {}",
               FileUtils.byteCountToDisplaySize(memoryAllocated.get()),

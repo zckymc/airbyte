@@ -16,14 +16,14 @@ public class GlobalMemoryManagerTest {
   void test() {
     final GlobalMemoryManager mgr = new GlobalMemoryManager(15 * BYTES_MB);
 
-    assertEquals(10 * BYTES_MB, mgr.requestMemory());
-    assertEquals(5 * BYTES_MB, mgr.requestMemory());
-    assertEquals(0, mgr.requestMemory());
+    assertEquals(10 * BYTES_MB, mgr.requestMemory(""));
+    assertEquals(5 * BYTES_MB, mgr.requestMemory(""));
+    assertEquals(0, mgr.requestMemory(""));
 
     mgr.free(10 * BYTES_MB);
-    assertEquals(10 * BYTES_MB, mgr.requestMemory());
+    assertEquals(10 * BYTES_MB, mgr.requestMemory(""));
     mgr.free(16 * BYTES_MB);
-    assertEquals(10 * BYTES_MB, mgr.requestMemory());
+    assertEquals(10 * BYTES_MB, mgr.requestMemory(""));
   }
 
 }

@@ -48,14 +48,16 @@ public class BufferEnqueue {
 
   private void handleRecord(final PartialAirbyteMessage message, final Integer sizeInBytes) {
     final StreamDescriptor streamDescriptor = extractStateFromRecord(message);
-    final var queue = buffers.computeIfAbsent(streamDescriptor, _k -> new StreamAwareQueue(memoryManager.requestMemory()));
+    final var streamName = streamDescriptor.getNamespace() == null ? streamDescriptor.getName() : streamDescriptor.getNamespace() + " - " + streamDescriptor.getName();
+    final var queue = buffers.computeIfAbsent(streamDescriptor, _k -> new StreamAwareQueue(memoryManager.requestMemory(streamName + " init")));
     final long stateId = stateManager.getStateIdAndIncrementCounter(streamDescriptor);
 
     var addedToQueue = queue.offer(message, sizeInBytes, stateId);
 
+
     int i = 0;
     while (!addedToQueue) {
-      final var newlyAllocatedMemory = memoryManager.requestMemory();
+      final var newlyAllocatedMemory = memoryManager.requestMemory(streamName + " record");
       if (newlyAllocatedMemory > 0) {
         queue.addMaxMemory(newlyAllocatedMemory);
       }
