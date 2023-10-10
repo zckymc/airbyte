@@ -84,20 +84,21 @@ public class BufferDequeue {
       if (queue.isEmpty()) {
         final var batchSizeBytes = bytesRead.get();
         final var maxMemoryBytes = queue.getMaxMemoryUsage();
+        final var slop = maxMemoryBytes - batchSizeBytes;
 
         LOGGER.info(
             "Empty buffer cleanup: queue max - {} - batch - {} slop - {} for stream - {} | {}",
             queue.getMaxMemoryUsage(),
             batchSizeBytes,
-            maxMemoryBytes - batchSizeBytes,
+            slop,
             streamDescriptor.getNamespace(),
             streamDescriptor.getName());
 
         // free slop
-        memoryManager.free(maxMemoryBytes - batchSizeBytes);
-        // shrink queue
-        queue.addMaxMemory(-getMaxQueueSizeBytes());
+        memoryManager.free(slop);
 
+        // shrink queue
+        queue.addMaxMemory(-maxMemoryBytes);
 //        buffers.remove(streamDescriptor);
         // free the remainder, leaving the read bytes to be freed by the batch flush
 //        final var slop = queue.getMaxMemoryUsage() - bytesRead.get();

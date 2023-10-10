@@ -53,8 +53,6 @@ public class BufferEnqueue {
     final long stateId = stateManager.getStateIdAndIncrementCounter(streamDescriptor);
 
     var addedToQueue = queue.offer(message, sizeInBytes, stateId);
-
-
     int i = 0;
     while (!addedToQueue) {
       final var newlyAllocatedMemory = memoryManager.requestMemory(streamName + " record");
