@@ -74,7 +74,7 @@ public class BufferDequeue {
         }
       }
 
-      memoryManager.ghettoLog(String.format("Queue size is: %d, name - %s|%s", queue.size(), "" + streamDescriptor.getNamespace(), streamDescriptor.getName()));
+      memoryManager.ghettoLog(String.format("Take queue size is: %d, name - %s | %s", queue.size(), "" + streamDescriptor.getNamespace(), streamDescriptor.getName()));
 
       if (queue.isEmpty()) {
         buffers.remove(streamDescriptor);
