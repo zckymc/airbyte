@@ -94,19 +94,4 @@ public class GlobalMemoryManager {
     }
   }
 
-  public void ghettoLog(final String msg) {
-    log.info(msg);
-  }
-
-  public void freeLog(final long maxMemoryBytes, final long batchSizeBytes, final StreamDescriptor streamDescriptor) {
-        log.info(
-            "Empty buffer cleanup: queue max - {} - batch - {} slop - {} for stream - {} | {}",
-            maxMemoryBytes,
-            batchSizeBytes,
-            maxMemoryBytes - batchSizeBytes,
-            streamDescriptor.getNamespace(),
-            streamDescriptor.getName());
-
-        free(maxMemoryBytes - batchSizeBytes);
-  }
 }

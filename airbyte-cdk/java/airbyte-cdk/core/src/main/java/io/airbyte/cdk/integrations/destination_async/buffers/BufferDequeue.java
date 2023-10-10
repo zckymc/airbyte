@@ -57,8 +57,6 @@ public class BufferDequeue {
    * @return autocloseable batch object, that frees memory.
    */
   public MemoryAwareMessageBatch take(final StreamDescriptor streamDescriptor, final long optimalBytesToRead) {
-    LOGGER.info("TAKE QUEUE: pre-lock");
-
     final var lock = bufferLocks.computeIfAbsent(streamDescriptor, _k -> new ReentrantLock());
     lock.lock();
 
@@ -81,21 +79,31 @@ public class BufferDequeue {
         }
       }
 
-      LOGGER.info("TAKE QUEUE");
-      LOGGER.info(String.valueOf(queue.size()));
-      LOGGER.info(streamDescriptor.getName());
-
-      memoryManager.ghettoLog(String.format("Take queue size is: %d, name - %s | %s", queue.size(), "" + streamDescriptor.getNamespace(), streamDescriptor.getName()));
+      LOGGER.info(String.format("Take queue size is: %d, name - %s | %s", queue.size(), "" + streamDescriptor.getNamespace(), streamDescriptor.getName()));
 
       if (queue.isEmpty()) {
-        buffers.remove(streamDescriptor);
+        final var batchSizeBytes = bytesRead.get();
+        final var maxMemoryBytes = queue.getMaxMemoryUsage();
+
+        LOGGER.info(
+            "Empty buffer cleanup: queue max - {} - batch - {} slop - {} for stream - {} | {}",
+            queue.getMaxMemoryUsage(),
+            batchSizeBytes,
+            maxMemoryBytes - batchSizeBytes,
+            streamDescriptor.getNamespace(),
+            streamDescriptor.getName());
+
+        // free slop
+        memoryManager.free(maxMemoryBytes - batchSizeBytes);
+        // shrink queue
+        queue.addMaxMemory(-getMaxQueueSizeBytes());
+
+//        buffers.remove(streamDescriptor);
         // free the remainder, leaving the read bytes to be freed by the batch flush
 //        final var slop = queue.getMaxMemoryUsage() - bytesRead.get();
 //        memoryManager.free(slop);
-        memoryManager.freeLog(queue.getMaxMemoryUsage(), bytesRead.get(), streamDescriptor);
       } else {
-        memoryManager.ghettoLog(String.format("Not-empty: bytes - %d, records: %d", bytesRead.get(), output.size()));
-
+        LOGGER.info(String.format("Not-empty: bytes - %d, records: %d", bytesRead.get(), output.size()));
         queue.addMaxMemory(-bytesRead.get());
       }
 
