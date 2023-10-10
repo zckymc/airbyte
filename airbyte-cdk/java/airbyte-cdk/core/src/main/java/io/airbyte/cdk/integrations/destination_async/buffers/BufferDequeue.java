@@ -57,6 +57,8 @@ public class BufferDequeue {
    * @return autocloseable batch object, that frees memory.
    */
   public MemoryAwareMessageBatch take(final StreamDescriptor streamDescriptor, final long optimalBytesToRead) {
+    LOGGER.info("TAKE QUEUE: pre-lock");
+
     final var lock = bufferLocks.computeIfAbsent(streamDescriptor, _k -> new ReentrantLock());
     lock.lock();
 
@@ -102,6 +104,10 @@ public class BufferDequeue {
           bytesRead.get(),
           memoryManager,
           stateManager);
+    } catch (final Exception e) {
+      LOGGER.error("EXCEPTION CAUGHT in TAKE");
+      LOGGER.error(e.getMessage());
+      throw e;
     } finally {
       lock.unlock();
     }
