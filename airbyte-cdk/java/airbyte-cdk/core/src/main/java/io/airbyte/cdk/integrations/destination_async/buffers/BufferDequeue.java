@@ -19,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents the minimal interface over the underlying buffer queues required for dequeue
@@ -29,6 +31,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 // todo (cgardens) - make all the metadata methods more efficient.
 public class BufferDequeue {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(BufferDequeue.class);
+
 
   private final GlobalMemoryManager memoryManager;
   private final ConcurrentMap<StreamDescriptor, StreamAwareQueue> buffers;
@@ -73,6 +78,10 @@ public class BufferDequeue {
           break;
         }
       }
+
+      LOGGER.info("TAKE QUEUE");
+      LOGGER.info(String.valueOf(queue.size()));
+      LOGGER.info(streamDescriptor.getName());
 
       memoryManager.ghettoLog(String.format("Take queue size is: %d, name - %s | %s", queue.size(), "" + streamDescriptor.getNamespace(), streamDescriptor.getName()));
 
