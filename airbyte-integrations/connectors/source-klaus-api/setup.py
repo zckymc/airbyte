@@ -6,20 +6,19 @@
 from setuptools import find_packages, setup
 
 MAIN_REQUIREMENTS = [
-    "airbyte-cdk",
+    "airbyte-cdk~=0.2",
 ]
 
 TEST_REQUIREMENTS = [
-    "requests-mock~=1.9.3",
     "pytest~=6.2",
     "pytest-mock~=3.6.1",
 ]
 
 setup(
-    name="source_datadog",
-    description="Source implementation for Datadog.",
-    author="Airbyte",
-    author_email="contact@airbyte.io",
+    name="source_klaus_api",
+    description="Source implementation for Klaus Api.",
+    author="Deke Li",
+    author_email="deke.li@sendinblue.com",
     packages=find_packages(),
     install_requires=MAIN_REQUIREMENTS,
     package_data={"": ["*.json", "*.yaml", "schemas/*.json", "schemas/shared/*.json"]},
