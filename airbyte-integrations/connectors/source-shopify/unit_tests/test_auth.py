@@ -62,5 +62,5 @@ def test_raises_missing_access_token(config_missing_access_token):
     failed_check = ConnectionCheckTest(config_missing_access_token).test_connection()
     assert failed_check == (
         False,
-        "Authentication was unsuccessful. Please verify your authentication credentials or login is correct.",
+        "Authentication was unsuccessful. Please verify your authentication credentials are correct and try again.",
     )
