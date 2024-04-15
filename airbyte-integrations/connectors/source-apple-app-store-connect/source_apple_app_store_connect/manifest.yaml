@@ -28,11 +28,12 @@ streams:
         authenticator:
           type: JwtAuthenticator
           secret_key: "{{ config['secret_key'] }}"
+          base64_encode_secret_key: true
           algorithm: ES256
           token_duration: 1200
           jwt_headers:
             kid:  "{{ config['kid'] }}"
-            typ: "JWT"
+            # typ: "JWT"
           jwt_payload:
             iss: "{{ config['iss'] }}"
             aud: "appstoreconnect-v1"
