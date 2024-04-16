@@ -874,7 +874,7 @@ definitions:
       header_prefix:
         type: string
         title: Header Prefix
-        description: The prefix to be used within the Authorization header.
+        description: The prefix to be used within the Authentication header.
         examples:
           - "Bearer"
           - "Basic"

@@ -296,7 +296,7 @@ class JwtAuthenticator(BaseModel):
         title='Token Duration',
     )
     header_prefix: Optional[str] = Field(
-        None, description='The prefix to be used within the Authorization header.', examples=['Bearer', 'Basic'], title='Header Prefix'
+        None, description='The prefix to be used within the Authentication header.', examples=['Bearer', 'Basic'], title='Header Prefix'
     )
     jwt_headers: JwtHeaders = Field(..., description='JWT headers used when signing JSON web token.', title='JWT Headers')
     additional_jwt_headers: Optional[Dict[str, Any]] = Field(
