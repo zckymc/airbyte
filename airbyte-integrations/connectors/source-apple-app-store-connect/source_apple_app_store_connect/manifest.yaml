@@ -30,6 +30,7 @@ streams:
           secret_key: "{{ config['secret_key'] }}"
           algorithm: ES256
           token_duration: 1200
+          header_prefix: Bearer
           jwt_headers:
             kid:  "{{ config['kid'] }}"
           jwt_payload:
