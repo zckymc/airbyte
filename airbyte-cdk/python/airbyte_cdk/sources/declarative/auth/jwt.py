@@ -9,9 +9,9 @@ from typing import Any, Mapping, Union
 
 import jwt
 from airbyte_cdk.sources.declarative.auth.declarative_authenticator import DeclarativeAuthenticator
+from airbyte_cdk.sources.declarative.interpolation.interpolated_boolean import InterpolatedBoolean
 from airbyte_cdk.sources.declarative.interpolation.interpolated_mapping import InterpolatedMapping
 from airbyte_cdk.sources.declarative.interpolation.interpolated_string import InterpolatedString
-from airbyte_cdk.sources.declarative.interpolation.interpolated_boolean import InterpolatedBoolean
 
 
 @dataclass
@@ -55,13 +55,12 @@ class JwtAuthenticator(DeclarativeAuthenticator):
             raise ValueError("'kid', 'alg', 'typ', 'cty' are reserved headers and should not be set as part of 'additional_jwt_headers'")
 
         if self._kid:
-            headers["kid"] = f"{self._kid.eval(self.config)}"
-        if self._algorithm:
-            headers["alg"] = f"{self._get_algorithm()}"
+            headers["kid"] = self._kid.eval(self.config)
         if self._typ:
-            headers["typ"] = f"{self._typ.eval(self.config)}"
+            headers["typ"] = self._typ.eval(self.config)
         if self._cty:
-            headers["cty"] = f"{self._cty.eval(self.config)}"
+            headers["cty"] = self._cty.eval(self.config)
+        headers["alg"] = self._algorithm.eval(self.config)
         return headers
 
     def _get_jwt_payload(self) -> Mapping[str, Any]:
@@ -71,44 +70,38 @@ class JwtAuthenticator(DeclarativeAuthenticator):
 
         payload = self._additional_jwt_payload.eval(self.config)
         if any(prop in payload for prop in ["iss", "sub", "aud", "iat", "exp", "nbf"]):
-            raise ValueError("'iss', 'sub', 'aud', 'iat', 'exp', 'nbf' are reserved properties and should not be set as part of 'additional_jwt_payload'")
+            raise ValueError(
+                "'iss', 'sub', 'aud', 'iat', 'exp', 'nbf' are reserved properties and should not be set as part of 'additional_jwt_payload'"
+            )
 
         if self._iss:
-            payload["iss"] = f"{self._iss.eval(self.config)}"
+            payload["iss"] = self._iss.eval(self.config)
         if self._sub:
-            payload["sub"] = f"{self._sub.eval(self.config)}"
+            payload["sub"] = self._sub.eval(self.config)
         if self._aud:
-            payload["aud"] = f"{self._aud.eval(self.config)}"
+            payload["aud"] = self._aud.eval(self.config)
         payload["iat"] = now
         payload["exp"] = exp
         payload["nbf"] = nbf
         return payload
 
-    def _get_algorithm(self) -> str:
-        algorithm: str = f"{self._algorithm.eval(self.config)}"
-        if not algorithm:
-            raise ValueError("Algorithm is required")
-        return algorithm
-
     def _get_secret_key(self) -> str:
-        secret_key: str = f"{self._secret_key.eval(self.config)}"
-        if not secret_key:
-            raise ValueError("secret_key is required")
-        if self._base64_encode_secret_key.eval(self.config):
-            secret_key = base64.b64encode(secret_key.encode()).decode()
-        return secret_key
+        secret_key: str = self._secret_key.eval(self.config)
+        return base64.b64encode(secret_key.encode()).decode() if self._base64_encode_secret_key.eval(self.config) else secret_key
 
     def _get_signed_token(self) -> str:
-        # todo error handling
-        return jwt.encode(
-            payload=self._get_jwt_payload(),
-            key=self._get_secret_key(),
-            algorithm=self._get_algorithm(),
-            headers=self._get_jwt_headers(),
-        )
+        try:
+            return jwt.encode(
+                payload=self._get_jwt_payload(),
+                key=self._get_secret_key(),
+                algorithm=self._algorithm.eval(self.config),
+                headers=self._get_jwt_headers(),
+            )
+        except Exception as e:
+            raise ValueError(f"Failed to sign token: {e}")
 
     def _get_header_prefix(self) -> str:
-        return f"{self._header_prefix.eval(self.config)}" if self._header_prefix else None
+        return self._header_prefix.eval(self.config) if self._header_prefix else None
 
     @property
     def auth_header(self) -> str:
@@ -116,4 +109,4 @@ class JwtAuthenticator(DeclarativeAuthenticator):
 
     @property
     def token(self) -> str:
-        return f"{self._get_header_prefix()} {self._get_signed_token()}" if self._get_header_prefix() else f"{self._get_signed_token()}"
+        return f"{self._get_header_prefix()} {self._get_signed_token()}" if self._get_header_prefix() else self._get_signed_token()
