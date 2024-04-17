@@ -34,7 +34,6 @@ from airbyte_cdk.sources.declarative.models import DeclarativeStream as Declarat
 from airbyte_cdk.sources.declarative.models import DefaultPaginator as DefaultPaginatorModel
 from airbyte_cdk.sources.declarative.models import HttpRequester as HttpRequesterModel
 from airbyte_cdk.sources.declarative.models import JwtAuthenticator as JwtAuthenticatorModel
-from airbyte_cdk.sources.declarative.models import Algorithm as JwtAlgorithmModel
 from airbyte_cdk.sources.declarative.models import ListPartitionRouter as ListPartitionRouterModel
 from airbyte_cdk.sources.declarative.models import OAuthAuthenticator as OAuthAuthenticatorModel
 from airbyte_cdk.sources.declarative.models import RecordSelector as RecordSelectorModel
@@ -1989,7 +1988,7 @@ def test_create_jwt_authenticator(config, manifest, expected):
     assert isinstance(authenticator, JwtAuthenticator)
     assert authenticator._secret_key.eval(config) == expected["secret_key"]
     assert authenticator._algorithm == expected["algorithm"]
-    assert authenticator._base64_encode_secret_key.eval(config) == expected["base64_encode_secret_key"]
+    assert authenticator._base64_encode_secret_key == expected["base64_encode_secret_key"]
     assert authenticator._token_duration == expected["token_duration"]
     if "header_prefix" in expected:
         assert authenticator._header_prefix.eval(config) == expected["header_prefix"]
