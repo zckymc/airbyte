@@ -17,7 +17,7 @@ from airbyte_cdk.sources.declarative.yaml_declarative_source import YamlDeclarat
 from airbyte_cdk.sources.streams import Stream
 from airbyte_cdk.sources.streams.availability_strategy import AvailabilityStrategy
 from airbyte_cdk.sources.streams.http import HttpStream
-from airbyte_cdk.sources.streams.http.auth import Oauth2Authenticator
+from airbyte_cdk.sources.streams.http.requests_native_auth import Oauth2Authenticator
 from airbyte_cdk.utils import AirbyteTracedException
 from airbyte_protocol.models import FailureType
 
