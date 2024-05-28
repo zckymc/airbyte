@@ -11,7 +11,7 @@ import pendulum
 from airbyte_cdk.models import FailureType
 from airbyte_cdk.sources.declarative.yaml_declarative_source import YamlDeclarativeSource
 from airbyte_cdk.sources.streams import Stream
-from airbyte_cdk.sources.streams.http.auth import Oauth2Authenticator
+from airbyte_cdk.sources.streams.http.requests_native_auth import Oauth2Authenticator
 from airbyte_cdk.utils import AirbyteTracedException
 from source_pinterest.reports import CampaignAnalyticsReport
 
@@ -79,7 +79,6 @@ class SourcePinterest(YamlDeclarativeSource):
             token_refresh_endpoint=f"{PinterestStream.url_base}oauth/token",
             client_secret=config.get("client_secret"),
             client_id=config.get("client_id"),
-            refresh_access_token_headers={"Authorization": auth},
             refresh_token=config.get("refresh_token"),
         )
 
