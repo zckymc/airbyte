@@ -6,9 +6,10 @@
 import logging
 from datetime import timedelta
 from http import HTTPStatus
+from unittest import mock
 from unittest.mock import MagicMock
 
-import mock
+# import mock
 import pendulum
 import pytest
 from airbyte_cdk.models import ConfiguredAirbyteCatalog, SyncMode, Type
@@ -80,19 +81,12 @@ def test_check_connection_invalid_start_date_exception(config_invalid_date):
         assert error_msg
 
 
-@mock.patch("source_hubspot.source.SourceHubspot.get_custom_object_streams")
-def test_streams(requests_mock, config):
-
+def test_streams(mock_api_responses, config):
     streams = SourceHubspot().streams(config)
-
     assert len(streams) == 33
 
-
-@mock.patch("source_hubspot.source.SourceHubspot.get_custom_object_streams")
-def test_streams_incremental(requests_mock, config_experimental):
-
+def test_streams_incremental(mock_api_responses, config_experimental):
     streams = SourceHubspot().streams(config_experimental)
-
     assert len(streams) == 45
 
 

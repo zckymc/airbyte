@@ -3,6 +3,7 @@
 #
 
 import pytest
+from unittest import mock
 from source_hubspot.source import SourceHubspot
 from source_hubspot.streams import API
 
@@ -90,3 +91,24 @@ def api(some_credentials):
 @pytest.fixture
 def http_mocker():
     return None
+
+
+@pytest.fixture
+def mock_api_responses():
+    with mock.patch.object(API, 'get') as mock_get, \
+         mock.patch.object(API, 'get_custom_objects_metadata') as mock_get_custom_objects_metadata, \
+         mock.patch.object(SourceHubspot, 'get_custom_object_streams') as mock_get_custom_object_streams:
+        
+        # Mock the custom objects metadata response
+        mock_get_custom_objects_metadata.return_value = [
+            ('entity', 'fully_qualified_name', 'some_field1', 'some_field2', 'some_field3')
+        ]
+        mock_get_custom_object_streams.return_value = []
+
+        # Mock the get method to return a successful response
+        mock_response = mock.Mock()
+        mock_response.json.return_value = {"results": []}
+        mock_response.status_code = 200
+        mock_get.return_value = (mock_response.json(), mock_response)
+        
+        yield mock_get, mock_get_custom_objects_metadata, mock_get_custom_object_streams
