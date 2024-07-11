@@ -3,14 +3,16 @@
 #
 from __future__ import annotations
 
+import dagger
 import os
 import re
-import subprocess
+from pathlib import Path
 import toml
 from typing import TYPE_CHECKING
 
 from connector_ops.utils import ConnectorLanguage  # type: ignore
 from dagger import Directory
+from pipelines.pipelines import LOCAL_BUILD_PLATFORM
 from pipelines.airbyte_ci.connectors.context import ConnectorContext
 from pipelines.airbyte_ci.connectors.reports import ConnectorReport
 from pipelines.helpers import git
@@ -102,36 +104,45 @@ class SetCDKVersion(Step):
 
         # Verify that the connector uses poetry for dependency management
         if "pyproject.toml" not in await og_connector_dir.entries():
-            self.skip_reason = f"Python connector {self.context.connector.technical_name} does not use poetry for dependency management. Please run the migrate-to-poetry pipeline first and try again."
-            return None
+            raise ValueError(f"Could not find pyproject.toml file for {self.context.connector.technical_name}.")
+
         pyproject_toml = og_connector_dir.file("pyproject.toml")
         pyproject_content = await pyproject_toml.contents()
-        pyproject_data = toml.load(pyproject_content)
+        pyproject_data = toml.loads(pyproject_content)
 
         # Validate that the airbyte-cdk dependency is already present in the pyproject.toml file
         deps = pyproject_data.get("tool", {}).get("poetry", {}).get("dependencies", {})
         airbyte_cdk_dependency = deps.get("airbyte-cdk")
 
         if not airbyte_cdk_dependency:
-            raise ValueError("Could not find a valid airbyte-cdk dependency listed in pyproject.toml")
+            raise ValueError("Could not find the airbyte-cdk dependency in pyproject.toml")
         
         if self.new_version == "latest":
             new_version = cdk_helpers.get_latest_python_cdk_version()
         else:
+            if not re.match(r'^\d+\.\d+\.\d+$', self.new_version):
+                raise ValueError(f"Invalid version number: {self.new_version}. Please provide a valid semver version.")
             new_version = self.new_version
 
         # Update the dependency version
-        deps["airbyte-cdk"] = f"^new_version"
+        deps["airbyte-cdk"] = f"^{new_version}"
 
         updated_pyproject_toml_content = toml.dumps(pyproject_data)
         updated_connector_dir = og_connector_dir.with_new_file("pyproject.toml", updated_pyproject_toml_content)
 
+        # Now handle the poetry lock update within a container
+        base_image_name = self.context.connector.metadata["connectorBuildOptions"]["baseImage"]
+        base_container = self.dagger_client.container(platform=LOCAL_BUILD_PLATFORM).from_(base_image_name)
+        connector_container = base_container.with_mounted_directory("/connector", updated_connector_dir).with_workdir("/connector")
+    
         try:
-            subprocess.run(["poetry", "lock"], check=True, cwd=og_connector_dir.path())
-        except subprocess.CalledProcessError as e:
-            raise ValueError(f"Failed to run 'poetry lock' command. Error: {e}")
-        
-        return updated_connector_dir
+        # Run poetry lock to update the lock file
+            connector_container = await connector_container.with_exec(["poetry", "lock"])
+            self.logger.info(await connector_container.stdout())
+        except dagger.ExecError as e:
+            return StepResult(step=self, status=StepStatus.FAILURE, stderr=str(e))
+
+        return StepResult(step=self, status=StepStatus.SUCCESS, output=connector_container.directory("."))
 
 
 async def run_connector_cdk_upgrade_pipeline(
