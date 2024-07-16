@@ -6,23 +6,19 @@ from __future__ import annotations
 import dagger
 import os
 import re
-from pathlib import Path
 import toml
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from connector_ops.utils import ConnectorLanguage  # type: ignore
-from dagger import Directory
-from pipelines.pipelines import LOCAL_BUILD_PLATFORM
+from pipelines.consts import LOCAL_BUILD_PLATFORM
 from pipelines.airbyte_ci.connectors.context import ConnectorContext
 from pipelines.airbyte_ci.connectors.reports import ConnectorReport
 from pipelines.helpers import git
 from pipelines.helpers.connectors import cdk_helpers
-from pipelines.models.reports import Report
 from pipelines.models.steps import Step, StepResult, StepStatus
+from pipelines.airbyte_ci.connectors.up_to_date.steps import PoetryUpdate
 
 if TYPE_CHECKING:
-    from typing import Optional
-
     from anyio import Semaphore
 
 
@@ -43,6 +39,7 @@ class SetCDKVersion(Step):
 
         try:
             og_connector_dir = await context.get_connector_dir()
+            print(f"Original connector directory: {og_connector_dir}")
             if self.context.connector.language in [ConnectorLanguage.PYTHON, ConnectorLanguage.LOW_CODE]:
                 updated_connector_dir = await self.upgrade_cdk_version_for_python_connector(og_connector_dir)
             elif self.context.connector.language is ConnectorLanguage.JAVA:
@@ -55,7 +52,15 @@ class SetCDKVersion(Step):
                 )
 
             if updated_connector_dir is None:
-                return self.skip(self.skip_reason)
+                return StepResult(
+                    step=self,
+                    status=StepStatus.FAILURE,
+                    stderr=f"Could not set CDK version for connector {self.context.connector.technical_name}",
+                )
+            
+
+            print(f"Updated connector directory: {updated_connector_dir}")
+
             diff = og_connector_dir.diff(updated_connector_dir)
             exported_successfully = await diff.export(os.path.join(git.get_git_repo_path(), context.connector.code_directory))
             if not exported_successfully:
@@ -70,6 +75,13 @@ class SetCDKVersion(Step):
                 step=self,
                 status=StepStatus.FAILURE,
                 stderr=f"Could not set CDK version: {e}",
+                exc_info=e,
+            )
+        except TypeError as e:
+            return StepResult(
+                step=self,
+                status=StepStatus.FAILURE,
+                stderr=str(e),
                 exc_info=e,
             )
 
@@ -102,6 +114,7 @@ class SetCDKVersion(Step):
         context = self.context
         og_connector_dir = await context.get_connector_dir()
 
+
         # Verify that the connector uses poetry for dependency management
         if "pyproject.toml" not in await og_connector_dir.entries():
             raise ValueError(f"Could not find pyproject.toml file for {self.context.connector.technical_name}.")
@@ -120,12 +133,10 @@ class SetCDKVersion(Step):
         if self.new_version == "latest":
             new_version = cdk_helpers.get_latest_python_cdk_version()
         else:
-            if not re.match(r'^\d+\.\d+\.\d+$', self.new_version):
-                raise ValueError(f"Invalid version number: {self.new_version}. Please provide a valid semver version.")
             new_version = self.new_version
 
         # Update the dependency version
-        deps["airbyte-cdk"] = f"^{new_version}"
+        deps["airbyte-cdk"] = f"{new_version}"
 
         updated_pyproject_toml_content = toml.dumps(pyproject_data)
         updated_connector_dir = og_connector_dir.with_new_file("pyproject.toml", updated_pyproject_toml_content)
@@ -149,7 +160,7 @@ async def run_connector_cdk_upgrade_pipeline(
     context: ConnectorContext,
     semaphore: Semaphore,
     target_version: str,
-) -> Report:
+) -> ConnectorReport:
     """Run a pipeline to upgrade the CDK version for a single connector.
 
     Args:
@@ -160,13 +171,25 @@ async def run_connector_cdk_upgrade_pipeline(
     """
     async with semaphore:
         steps_results = []
+        report = None
         async with context:
-            set_cdk_version = SetCDKVersion(
-                context,
-                target_version,
-            )
+            set_cdk_version = SetCDKVersion(context, target_version)
             set_cdk_version_result = await set_cdk_version.run()
             steps_results.append(set_cdk_version_result)
+            print(f"Set CDK version result: {set_cdk_version_result}")
+
+            if set_cdk_version_result.success:
+                updated_connector_dir = set_cdk_version_result.output
+                if not isinstance(updated_connector_dir, dagger.Directory):
+                    raise TypeError(f"Expected updated_connector_dir to be Directory, but got {type(updated_connector_dir)}")
+
+            if set_cdk_version_result.success and context.connector.language in [ConnectorLanguage.PYTHON, ConnectorLanguage.LOW_CODE]:
+                poetry_update = PoetryUpdate(context, specific_dependencies=[], connector_directory=set_cdk_version_result.output)
+                poetry_update_result = await poetry_update.run()
+                steps_results.append(poetry_update_result)
+                print(f"Poetry update result: {poetry_update_result}")
+
             report = ConnectorReport(context, steps_results, name="CONNECTOR VERSION CDK UPGRADE RESULTS")
             context.report = report
+                
     return report
