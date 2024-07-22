@@ -10,6 +10,7 @@ import toml
 from typing import TYPE_CHECKING, Optional
 
 from connector_ops.utils import ConnectorLanguage  # type: ignore
+from dagger import Directory
 from pipelines.consts import LOCAL_BUILD_PLATFORM
 from pipelines.airbyte_ci.connectors.context import ConnectorContext
 from pipelines.airbyte_ci.connectors.reports import ConnectorReport
@@ -124,43 +125,43 @@ class SetCDKVersion(Step):
         pyproject_data = toml.loads(pyproject_content)
 
         # Validate that the airbyte-cdk dependency is already present in the pyproject.toml file
-        deps = pyproject_data.get("tool", {}).get("poetry", {}).get("dependencies", {})
-        airbyte_cdk_dependency = deps.get("airbyte-cdk")
+        dependencies = pyproject_data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+        airbyte_cdk_dependency = dependencies.get("airbyte-cdk")
 
         if not airbyte_cdk_dependency:
             raise ValueError("Could not find the airbyte-cdk dependency in pyproject.toml")
         
         if self.new_version == "latest":
-            new_version = cdk_helpers.get_latest_python_cdk_version()
+            new_version = f"^{cdk_helpers.get_latest_python_cdk_version()}"
         else:
             new_version = self.new_version
 
         # Update the dependency version
-        deps["airbyte-cdk"] = f"{new_version}"
+        dependencies["airbyte-cdk"] = new_version
 
         updated_pyproject_toml_content = toml.dumps(pyproject_data)
         updated_connector_dir = og_connector_dir.with_new_file("pyproject.toml", updated_pyproject_toml_content)
 
-        # Now handle the poetry lock update within a container
-        base_image_name = self.context.connector.metadata["connectorBuildOptions"]["baseImage"]
-        base_container = self.dagger_client.container(platform=LOCAL_BUILD_PLATFORM).from_(base_image_name)
-        connector_container = base_container.with_mounted_directory("/connector", updated_connector_dir).with_workdir("/connector")
+        # # Now handle the poetry lock update within a container
+        # base_image_name = self.context.connector.metadata["connectorBuildOptions"]["baseImage"]
+        # base_container = self.dagger_client.container(platform=LOCAL_BUILD_PLATFORM).from_(base_image_name)
+        # connector_container = base_container.with_mounted_directory("/connector", updated_connector_dir).with_workdir("/connector")
     
-        try:
-        # Run poetry lock to update the lock file
-            connector_container = await connector_container.with_exec(["poetry", "lock"])
-            self.logger.info(await connector_container.stdout())
-        except dagger.ExecError as e:
-            return StepResult(step=self, status=StepStatus.FAILURE, stderr=str(e))
+        # try:
+        # # Run poetry lock to update the lock file
+        #     connector_container = await connector_container.with_exec(["poetry", "lock"])
+        #     self.logger.info(await connector_container.stdout())
+        # except dagger.ExecError as e:
+        #     return StepResult(step=self, status=StepStatus.FAILURE, stderr=str(e))
 
-        return StepResult(step=self, status=StepStatus.SUCCESS, output=connector_container.directory("."))
+        return updated_connector_dir
 
 
 async def run_connector_cdk_upgrade_pipeline(
     context: ConnectorContext,
     semaphore: Semaphore,
     target_version: str,
-) -> ConnectorReport:
+) -> ConnectorReport | None:
     """Run a pipeline to upgrade the CDK version for a single connector.
 
     Args:
@@ -183,11 +184,11 @@ async def run_connector_cdk_upgrade_pipeline(
                 if not isinstance(updated_connector_dir, dagger.Directory):
                     raise TypeError(f"Expected updated_connector_dir to be Directory, but got {type(updated_connector_dir)}")
 
-            if set_cdk_version_result.success and context.connector.language in [ConnectorLanguage.PYTHON, ConnectorLanguage.LOW_CODE]:
-                poetry_update = PoetryUpdate(context, specific_dependencies=[], connector_directory=set_cdk_version_result.output)
-                poetry_update_result = await poetry_update.run()
-                steps_results.append(poetry_update_result)
-                print(f"Poetry update result: {poetry_update_result}")
+            # if set_cdk_version_result.success and context.connector.language in [ConnectorLanguage.PYTHON, ConnectorLanguage.LOW_CODE]:
+            #     poetry_update = PoetryUpdate(context, specific_dependencies=[], connector_directory=set_cdk_version_result.output)
+            #     poetry_update_result = await poetry_update.run()
+            #     steps_results.append(poetry_update_result)
+            #     print(f"Poetry update result: {poetry_update_result}")
 
             report = ConnectorReport(context, steps_results, name="CONNECTOR VERSION CDK UPGRADE RESULTS")
             context.report = report
