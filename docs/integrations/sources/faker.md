@@ -104,6 +104,7 @@ None!
 
 | Version | Date       | Pull Request                                                                                                          | Subject                                                                                                         |
 | :------ | :--------- | :-------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| 6.3.0 | 2024-08-15 | [*PR_NUMBER_PLACEHOLDER*](https://github.com/airbytehq/airbyte/pull/*PR_NUMBER_PLACEHOLDER*) | Migrate to CDK v4.4.1 |
 | 6.2.8 | 2024-08-12 | [43753](https://github.com/airbytehq/airbyte/pull/43753) | Update dependencies |
 | 6.2.7 | 2024-08-10 | [43570](https://github.com/airbytehq/airbyte/pull/43570) | Update dependencies |
 | 6.2.6 | 2024-08-03 | [43102](https://github.com/airbytehq/airbyte/pull/43102) | Update dependencies |
