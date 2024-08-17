@@ -68,6 +68,7 @@ The Freshsales connector should not run into Freshsales API limitations under no
 
 | Version | Date       | Pull Request                                             | Subject                                                      |
 | :------ | :--------- | :------------------------------------------------------- | :----------------------------------------------------------- |
+| 1.0.15 | 2024-08-17 | [44277](https://github.com/airbytehq/airbyte/pull/44277) | Update dependencies |
 | 1.0.14 | 2024-08-12 | [43904](https://github.com/airbytehq/airbyte/pull/43904) | Update dependencies |
 | 1.0.13 | 2024-08-10 | [43678](https://github.com/airbytehq/airbyte/pull/43678) | Update dependencies |
 | 1.0.12 | 2024-08-03 | [43192](https://github.com/airbytehq/airbyte/pull/43192) | Update dependencies |
