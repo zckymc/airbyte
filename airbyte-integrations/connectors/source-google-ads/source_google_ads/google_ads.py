@@ -31,7 +31,6 @@ def on_give_up(details):
 
 
 class GoogleAds:
-    DEFAULT_PAGE_SIZE = 1000
 
     def __init__(self, credentials: MutableMapping[str, Any]):
         # `google-ads` library version `14.0.0` and higher requires an additional required parameter `use_proto_plus`.
@@ -94,7 +93,6 @@ class GoogleAds:
         client = self.get_client(login_customer_id)
         search_request = client.get_type("SearchGoogleAdsRequest")
         search_request.query = query
-        search_request.page_size = self.DEFAULT_PAGE_SIZE
         search_request.customer_id = customer_id
         return [self.ga_service(login_customer_id).search(search_request)]
 
