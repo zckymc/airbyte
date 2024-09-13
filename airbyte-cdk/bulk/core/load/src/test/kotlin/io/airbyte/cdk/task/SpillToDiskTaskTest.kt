@@ -4,10 +4,9 @@
 
 package io.airbyte.cdk.task
 
-import io.airbyte.cdk.command.DefaultWriteConfiguration
+import io.airbyte.cdk.command.DestinationConfiguration
 import io.airbyte.cdk.command.DestinationStream
 import io.airbyte.cdk.command.MockCatalogFactory.Companion.stream1
-import io.airbyte.cdk.command.WriteConfiguration
 import io.airbyte.cdk.data.NullValue
 import io.airbyte.cdk.file.FileReader
 import io.airbyte.cdk.file.FileWriter
@@ -22,6 +21,7 @@ import io.airbyte.cdk.message.StreamCompleteWrapped
 import io.airbyte.cdk.message.StreamRecordWrapped
 import io.airbyte.cdk.write.StreamLoader
 import io.micronaut.context.annotation.Factory
+import io.micronaut.context.annotation.Primary
 import io.micronaut.context.annotation.Requires
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
@@ -99,7 +99,7 @@ class SpillToDiskTaskTest {
         }
 
         override suspend fun handleNewSpilledFile(
-            stream: DestinationStream,
+            stream: DestinationStream.Descriptor,
             wrapped: BatchEnvelope<SpilledRawMessagesLocalFile>
         ) {
             spilledFiles.add(wrapped)
@@ -132,8 +132,9 @@ class SpillToDiskTaskTest {
     }
 
     @Singleton
+    @Primary
     @Requires(env = ["SpillToDiskTaskTest"])
-    class MockWriteConfiguration : DefaultWriteConfiguration(), WriteConfiguration {
+    class MockWriteConfiguration : DestinationConfiguration() {
         override val recordBatchSizeBytes: Long = 1024L
         override val tmpFileDirectory: Path = Path.of("/tmp-test")
         override val firstStageTmpFilePrefix: String = "spilled"
@@ -142,12 +143,13 @@ class SpillToDiskTaskTest {
 
     @Singleton
     @Requires(env = ["SpillToDiskTaskTest"])
-    class MockQueueReader : MessageQueueReader<DestinationStream, DestinationRecordWrapped> {
+    class MockQueueReader :
+        MessageQueueReader<DestinationStream.Descriptor, DestinationRecordWrapped> {
         // Make enough records for a full batch + half a batch
         private val maxRecords = ((1024 * 1.5) / 8).toLong()
         private val recordsWritten = AtomicLong(0)
         override suspend fun readChunk(
-            key: DestinationStream,
+            key: DestinationStream.Descriptor,
             maxBytes: Long
         ): Flow<DestinationRecordWrapped> = flow {
             var totalBytes = 0
@@ -159,7 +161,7 @@ class SpillToDiskTaskTest {
                         sizeBytes = 8,
                         record =
                             DestinationRecord(
-                                stream = stream1,
+                                stream = stream1.descriptor,
                                 data = NullValue,
                                 emittedAtMs = 0,
                                 meta = null,
@@ -179,7 +181,7 @@ class SpillToDiskTaskTest {
     @Test
     fun testSpillToDiskTask() = runTest {
         val mockTaskLauncher = MockTaskLauncher(taskRunner)
-        spillToDiskTaskFactory.make(mockTaskLauncher, stream1).execute()
+        spillToDiskTaskFactory.make(mockTaskLauncher, stream1.descriptor).execute()
         Assertions.assertEquals(2, mockTaskLauncher.spilledFiles.size)
         Assertions.assertEquals(1024, mockTaskLauncher.spilledFiles[0].batch.totalSizeBytes)
         Assertions.assertEquals(512, mockTaskLauncher.spilledFiles[1].batch.totalSizeBytes)
