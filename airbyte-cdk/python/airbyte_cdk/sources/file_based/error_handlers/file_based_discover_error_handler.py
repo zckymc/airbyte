@@ -22,7 +22,7 @@ class FileBasedDiscoverErrorHandler(AbstractDiscoverErrorHandler):
 
     def handle_discover_error(self, logger: logging.Logger, exception: Exception) -> None:
         if type(exception) in self._exceptions_to_log:
-            logger.error(
+            logger.warn(
                 f"Error occurred while discovering stream and therefore stream will not be added to the configured catalog: {exception}"
             )
         elif (
@@ -30,7 +30,7 @@ class FileBasedDiscoverErrorHandler(AbstractDiscoverErrorHandler):
             and exception.message is not None
             and any(exc in exception.message for exc in self._underlying_exceptions_to_log)
         ):
-            logger.error(
+            logger.warn(
                 f"Error occurred while discovering stream and therefore stream will not be added to the configured catalog: {exception}"
             )
         else:

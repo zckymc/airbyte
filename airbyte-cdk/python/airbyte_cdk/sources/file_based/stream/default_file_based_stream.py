@@ -283,7 +283,7 @@ class DefaultFileBasedStream(AbstractFileBasedStream, IncrementalMixin):
                 except AirbyteTracedException as ate:
                     raise ate
                 except Exception as exc:
-                    self.logger.error(f"An error occurred inferring the schema. \n {traceback.format_exc()}", exc_info=exc)
+                    self.logger.warn(f"An error occurred inferring the schema. \n {traceback.format_exc()}", exc_info=exc)
 
         return base_schema
 

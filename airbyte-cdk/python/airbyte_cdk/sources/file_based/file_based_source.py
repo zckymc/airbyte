@@ -33,6 +33,7 @@ from airbyte_cdk.sources.file_based.exceptions import (
     FileBasedSourceError,
     InvalidSchemaError,
     SchemaInferenceError,
+    RecordParseError
 )
 from airbyte_cdk.sources.file_based.file_based_stream_reader import AbstractFileBasedStreamReader
 from airbyte_cdk.sources.file_based.file_types import default_parsers
@@ -104,11 +105,17 @@ class FileBasedSource(ConcurrentSourceAdapter, ABC):
 
     def discover_error_handler(self) -> AbstractDiscoverErrorHandler:
         return FileBasedDiscoverErrorHandler(
-            exceptions_to_log=[ConfigValidationError, InvalidSchemaError, SchemaInferenceError],
+            exceptions_to_log=[
+                ConfigValidationError,
+                InvalidSchemaError,
+                SchemaInferenceError,
+                RecordParseError
+            ],
             underlying_exceptions_to_log=[
                 FileBasedSourceError.INVALID_SCHEMA_ERROR,
                 FileBasedSourceError.SCHEMA_INFERENCE_ERROR,
                 FileBasedSourceError.CONFIG_VALIDATION_ERROR,
+                FileBasedSourceError.ERROR_PARSING_RECORD_MISMATCHED_COLUMNS,
             ],
         )
 
