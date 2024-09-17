@@ -10,3 +10,29 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     implementation "org.jetbrains.kotlin:kotlin-reflect:2.0.20"
 }
+
+sourceSets {
+    integrationTest {
+    }
+}
+
+kotlin {
+    sourceSets {
+        testIntegration {
+        }
+    }
+}
+
+task integrationTest(type: Test) {
+    description = 'Runs the integration tests.'
+    group = 'verification'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform()
+    mustRunAfter tasks.check
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
