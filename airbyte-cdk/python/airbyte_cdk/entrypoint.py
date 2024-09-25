@@ -10,6 +10,7 @@ import os.path
 import socket
 import sys
 import tempfile
+import time
 from collections import defaultdict
 from functools import wraps
 from typing import Any, DefaultDict, Iterable, List, Mapping, Optional
@@ -238,10 +239,17 @@ class AirbyteEntrypoint(object):
 def launch(source: Source, args: List[str]) -> None:
     source_entrypoint = AirbyteEntrypoint(source)
     parsed_args = source_entrypoint.parse_args(args)
-    for message in source_entrypoint.run(parsed_args):
-        # simply printing is creating issues for concurrent CDK as Python uses different two instructions to print: one for the message and
-        # the other for the break line. Adding `\n` to the message ensure that both are printed at the same time
-        print(f"{message}\n", end="", flush=True)
+    with PrintBuffer():
+        for message in source_entrypoint.run(parsed_args):
+            # simply printing is creating issues for concurrent CDK as Python uses different two instructions to print: one for the message and
+            # the other for the break line. Adding `\n` to the message ensure that both are printed at the same time
+            print(f"{message}\n", end="", flush=True)
+    before = time.time()
+    print("About to wait 5 seconds")
+    time.sleep(3)
+    after = time.time()
+    waiting = after - before
+    print(f"Printing this after waiting {waiting} seconds")
 
 
 def _init_internal_request_filter() -> None:
