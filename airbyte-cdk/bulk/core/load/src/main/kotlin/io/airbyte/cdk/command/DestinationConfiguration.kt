@@ -11,15 +11,15 @@ import jakarta.inject.Singleton
 @ConfigurationProperties("destination.config")
 interface DestinationConfiguration : Configuration {
     /**
-     * Micronaut factory which glues [ConfigurationJsonObjectSupplier] and
+     * Micronaut factory which glues [ConfigurationSpecificationSupplier] and
      * [DestinationConfigurationFactory] together to produce a [DestinationConfiguration] singleton.
      */
     @Factory
     private class MicronautFactory {
         @Singleton
-        fun <I : ConfigurationJsonObjectBase> sourceConfig(
-            pojoSupplier: ConfigurationJsonObjectSupplier<I>,
+        fun <I : ConfigurationSpecification> destinationConfig(
+            specificationSupplier: ConfigurationSpecificationSupplier<I>,
             factory: DestinationConfigurationFactory<I, out DestinationConfiguration>,
-        ): DestinationConfiguration = factory.make(pojoSupplier.get())
+        ): DestinationConfiguration = factory.make(specificationSupplier.get())
     }
 }

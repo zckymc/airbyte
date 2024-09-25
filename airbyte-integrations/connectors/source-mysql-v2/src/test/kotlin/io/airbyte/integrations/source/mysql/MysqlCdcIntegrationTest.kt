@@ -5,12 +5,11 @@
 package io.airbyte.integrations.source.mysql
 
 import io.airbyte.cdk.command.CliRunner
-import io.airbyte.cdk.command.ConfigurationJsonObjectSupplier
 import io.airbyte.cdk.command.ConfiguredCatalogFactory
+import io.airbyte.cdk.command.ConfigurationSpecificationSupplier
 import io.airbyte.cdk.command.InputStateFactory
 import io.airbyte.cdk.command.ValidatedJsonUtils
 import io.airbyte.cdk.output.BufferingOutputConsumer
-import io.airbyte.protocol.models.AirbyteStateMessage
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.env.Environment
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -23,7 +22,7 @@ import org.junit.jupiter.api.Test
 @Disabled
 class MysqlCdcIntegrationTest {
     @Inject
-    lateinit var supplier: ConfigurationJsonObjectSupplier<MysqlSourceConfigurationJsonObject>
+    lateinit var supplier: ConfigurationSpecificationSupplier<MysqlSourceConfigurationJsonObject>
 
     @Inject lateinit var catalogFactory: ConfiguredCatalogFactory
 

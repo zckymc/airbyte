@@ -42,14 +42,16 @@ data object SyncsTestFixture {
         testSpec(specFromResource(expectedSpecResource))
     }
 
-    fun specFromResource(specResource: String): ConnectorSpecification =
+    fun specFromResource(
+        specResource: String
+    ): ConnectorSpecification =
         Jsons.readValue(
             ResourceUtils.readResource(specResource),
             ConnectorSpecification::class.java,
         )
 
     fun testCheck(
-        configPojo: ConfigurationJsonObjectBase,
+        configPojo: ConfigurationSpecification,
         expectedFailure: String? = null,
     ) {
         val checkOutput: BufferingOutputConsumer = CliRunner.source("check", configPojo).run()
@@ -70,7 +72,7 @@ data object SyncsTestFixture {
     }
 
     fun testDiscover(
-        configPojo: ConfigurationJsonObjectBase,
+        configPojo: ConfigurationSpecification,
         expectedCatalog: AirbyteCatalog,
     ) {
         val discoverOutput: BufferingOutputConsumer = CliRunner.source("discover", configPojo).run()
@@ -78,7 +80,7 @@ data object SyncsTestFixture {
     }
 
     fun testDiscover(
-        configPojo: ConfigurationJsonObjectBase,
+        configPojo: ConfigurationSpecification,
         expectedCatalogResource: String,
     ) {
         testDiscover(configPojo, catalogFromResource(expectedCatalogResource))
@@ -90,7 +92,7 @@ data object SyncsTestFixture {
             AirbyteCatalog::class.java,
         )
 
-    fun <T : ConfigurationJsonObjectBase> testReads(
+    fun <T : ConfigurationSpecification> testReads(
         configPojo: T,
         connectionSupplier: Supplier<Connection>,
         prelude: (Connection) -> Unit,
@@ -109,7 +111,7 @@ data object SyncsTestFixture {
         }
     }
 
-    fun <T : ConfigurationJsonObjectBase> testReads(
+    fun <T : ConfigurationSpecification> testReads(
         configPojo: T,
         connectionSupplier: Supplier<Connection>,
         prelude: (Connection) -> Unit,
@@ -127,7 +129,7 @@ data object SyncsTestFixture {
         )
     }
 
-    fun <T : ConfigurationJsonObjectBase> testSyncs(
+    fun <T : ConfigurationSpecification> testSyncs(
         configPojo: T,
         connectionSupplier: Supplier<Connection>,
         prelude: (Connection) -> Unit,
@@ -148,7 +150,7 @@ data object SyncsTestFixture {
         }
     }
 
-    fun <T : ConfigurationJsonObjectBase> testSyncs(
+    fun <T : ConfigurationSpecification> testSyncs(
         configPojo: T,
         connectionSupplier: Supplier<Connection>,
         prelude: (Connection) -> Unit,
