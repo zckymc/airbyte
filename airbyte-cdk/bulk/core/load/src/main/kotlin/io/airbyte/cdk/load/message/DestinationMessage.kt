@@ -364,7 +364,9 @@ data class DestinationRecordRaw(
      * (e.g. if `type` is [TimestampTypeWithTimezone], then `value` is either `NullValue`, or
      * [TimestampWithTimezoneValue]).
      */
-    fun asEnrichedDestinationRecordAirbyteValue(extractedAtAsTimestampWithTimezone: Boolean = false): EnrichedDestinationRecordAirbyteValue {
+    fun asEnrichedDestinationRecordAirbyteValue(
+        extractedAtAsTimestampWithTimezone: Boolean = false
+    ): EnrichedDestinationRecordAirbyteValue {
         val rawJson = asRawJson()
 
         // Get the fields from the schema
