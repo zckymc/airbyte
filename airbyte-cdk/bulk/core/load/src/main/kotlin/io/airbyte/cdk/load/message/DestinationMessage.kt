@@ -52,7 +52,9 @@ import io.micronaut.context.annotation.Value
 import jakarta.inject.Named
 import jakarta.inject.Singleton
 import java.math.BigInteger
+import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.SequencedMap
 import java.util.UUID
 
@@ -251,6 +253,7 @@ data class EnrichedDestinationRecordAirbyteValue(
      */
     val meta: Meta?,
     val serializedSizeBytes: Long = 0L,
+    private val extractedAtAsTimestampWithTimezone: Boolean = false
 ) {
     val airbyteMeta: EnrichedAirbyteValue
         get() =
@@ -285,7 +288,16 @@ data class EnrichedDestinationRecordAirbyteValue(
                     ),
                 Meta.COLUMN_NAME_AB_EXTRACTED_AT to
                     EnrichedAirbyteValue(
-                        IntegerValue(emittedAtMs),
+                        if (extractedAtAsTimestampWithTimezone) {
+                            TimestampWithTimezoneValue(
+                                OffsetDateTime.ofInstant(
+                                    Instant.ofEpochMilli(emittedAtMs),
+                                    ZoneOffset.UTC
+                                )
+                            )
+                        } else {
+                            IntegerValue(emittedAtMs)
+                        },
                         Meta.AirbyteMetaFields.EXTRACTED_AT.type,
                         name = Meta.COLUMN_NAME_AB_EXTRACTED_AT,
                         airbyteMetaField = Meta.AirbyteMetaFields.EXTRACTED_AT,
@@ -352,7 +364,7 @@ data class DestinationRecordRaw(
      * (e.g. if `type` is [TimestampTypeWithTimezone], then `value` is either `NullValue`, or
      * [TimestampWithTimezoneValue]).
      */
-    fun asEnrichedDestinationRecordAirbyteValue(): EnrichedDestinationRecordAirbyteValue {
+    fun asEnrichedDestinationRecordAirbyteValue(extractedAtAsTimestampWithTimezone: Boolean = false): EnrichedDestinationRecordAirbyteValue {
         val rawJson = asRawJson()
 
         // Get the fields from the schema
@@ -406,7 +418,8 @@ data class DestinationRecordRaw(
                     }
                         ?: emptyList()
                 ),
-            serializedSizeBytes = serializedSizeBytes
+            serializedSizeBytes = serializedSizeBytes,
+            extractedAtAsTimestampWithTimezone = extractedAtAsTimestampWithTimezone
         )
     }
 }
