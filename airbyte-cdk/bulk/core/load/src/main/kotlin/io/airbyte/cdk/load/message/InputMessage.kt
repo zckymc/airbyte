@@ -235,6 +235,10 @@ data class InputStreamComplete(val streamComplete: DestinationRecordStreamComple
     override fun asProtocolMessage(): AirbyteMessage = streamComplete.asProtocolMessage()
 }
 
+data class InputStreamIncomplete(val streamIncomplete: DestinationRecordStreamIncomplete) : InputMessage {
+    override fun asProtocolMessage(): AirbyteMessage = streamIncomplete.asProtocolMessage()
+}
+
 data class InputMessageOther(val airbyteMessage: AirbyteMessage) : InputMessage {
     override fun asProtocolMessage(): AirbyteMessage = airbyteMessage
 }
