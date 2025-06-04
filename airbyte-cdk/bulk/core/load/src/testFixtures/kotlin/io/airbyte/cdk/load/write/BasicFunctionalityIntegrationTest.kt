@@ -62,6 +62,7 @@ import io.airbyte.cdk.util.Jsons
 import io.airbyte.protocol.models.v0.AirbyteMessage
 import io.airbyte.protocol.models.v0.AirbyteRecordMessageFileReference
 import io.airbyte.protocol.models.v0.AirbyteRecordMessageMetaChange
+import io.airbyte.protocol.models.v0.AirbyteStreamStatusTraceMessage
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDate
@@ -875,15 +876,61 @@ abstract class BasicFunctionalityIntegrationTest(
                 )
             )
         )
+
         val finalStream = makeStream(generationId = 13, minimumGenerationId = 13, syncId = 43)
+        // start a truncate refresh, but emit INCOMPLETE.
+        // This should retain the existing data, and maybe insert the new record.
+        assertThrows<DestinationUncleanExitException> {
+            runSync(
+                updatedConfig,
+                finalStream,
+                listOf(
+                    InputRecord(
+                        stream = stream,
+                        """{"id": 42, "name": "second_value"}""",
+                        emittedAtMs = 2345,
+                        checkpointId = checkpointKeyForMedium()?.checkpointId
+                    )
+                ),
+                streamStatus = AirbyteStreamStatusTraceMessage.AirbyteStreamStatus.INCOMPLETE,
+            )
+        }
+        dumpAndDiffRecords(
+            parsedConfig,
+            listOfNotNull(
+                // first record is still present
+                OutputRecord(
+                    extractedAt = 1234,
+                    generationId = 12,
+                    data = mapOf("id" to 42, "name" to "first_value"),
+                    airbyteMeta = OutputRecord.Meta(syncId = 42),
+                ),
+                if (commitDataIncrementally) {
+                    OutputRecord(
+                        extractedAt = 2345,
+                        generationId = 13,
+                        data = mapOf("id" to 42, "name" to "second_value"),
+                        airbyteMeta = OutputRecord.Meta(syncId = 43),
+                    )
+                } else {
+                    null
+                }
+            ),
+            finalStream,
+            primaryKey = listOf(listOf("id")),
+            cursor = null,
+        )
+
+        // finish the truncate. This should now delete the first sync's data,
+        // and definitely insert the second+third syncs' data.
         runSync(
             updatedConfig,
             finalStream,
             listOf(
                 InputRecord(
                     stream = stream,
-                    """{"id": 42, "name": "second_value"}""",
-                    emittedAtMs = 1234,
+                    """{"id": 42, "name": "third_value"}""",
+                    emittedAtMs = 3456,
                     checkpointId = checkpointKeyForMedium()?.checkpointId
                 )
             )
@@ -891,12 +938,19 @@ abstract class BasicFunctionalityIntegrationTest(
         dumpAndDiffRecords(
             parsedConfig,
             listOf(
+                // retain the second+third records
                 OutputRecord(
-                    extractedAt = 1234,
+                    extractedAt = 2345,
                     generationId = 13,
                     data = mapOf("id" to 42, "name" to "second_value"),
                     airbyteMeta = OutputRecord.Meta(syncId = 43),
-                )
+                ),
+                OutputRecord(
+                    extractedAt = 3456,
+                    generationId = 13,
+                    data = mapOf("id" to 42, "name" to "third_value"),
+                    airbyteMeta = OutputRecord.Meta(syncId = 43),
+                ),
             ),
             finalStream,
             primaryKey = listOf(listOf("id")),

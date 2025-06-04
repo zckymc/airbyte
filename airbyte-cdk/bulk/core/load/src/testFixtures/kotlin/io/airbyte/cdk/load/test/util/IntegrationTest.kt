@@ -13,11 +13,13 @@ import io.airbyte.cdk.load.command.Property
 import io.airbyte.cdk.load.config.DataChannelFormat
 import io.airbyte.cdk.load.config.DataChannelMedium
 import io.airbyte.cdk.load.message.DestinationRecordStreamComplete
+import io.airbyte.cdk.load.message.DestinationRecordStreamIncomplete
 import io.airbyte.cdk.load.message.InputMessage
 import io.airbyte.cdk.load.message.InputMessageOther
 import io.airbyte.cdk.load.message.InputRecord
 import io.airbyte.cdk.load.message.InputStreamCheckpoint
 import io.airbyte.cdk.load.message.InputStreamComplete
+import io.airbyte.cdk.load.message.InputStreamIncomplete
 import io.airbyte.cdk.load.message.StreamCheckpoint
 import io.airbyte.cdk.load.test.util.destination_process.DestinationProcessFactory
 import io.airbyte.cdk.load.test.util.destination_process.DestinationUncleanExitException
@@ -233,6 +235,11 @@ abstract class IntegrationTest(
         useFileTransfer: Boolean = false,
         destinationProcessFactory: DestinationProcessFactory = this.destinationProcessFactory,
     ): List<AirbyteMessage> {
+        check(
+            streamStatus == null ||
+                streamStatus == AirbyteStreamStatus.COMPLETE ||
+                streamStatus == AirbyteStreamStatus.INCOMPLETE
+        ) { "Invalid stream status: $streamStatus" }
         destinationProcessFactory.testName = testPrettyName
 
         val destination =
@@ -250,11 +257,27 @@ abstract class IntegrationTest(
             messages.forEach { destination.sendMessage(it) }
             if (streamStatus != null) {
                 catalog.streams.forEach {
+                    val streamStatusMessage =
+                        when (streamStatus) {
+                            AirbyteStreamStatus.COMPLETE ->
+                                InputStreamComplete(
+                                    DestinationRecordStreamComplete(it, System.currentTimeMillis())
+                                )
+                            AirbyteStreamStatus.INCOMPLETE ->
+                                InputStreamIncomplete(
+                                    DestinationRecordStreamIncomplete(
+                                        it,
+                                        System.currentTimeMillis()
+                                    )
+                                )
+                            else ->
+                                throw IllegalStateException(
+                                    "Impossible: We checked that the stream status was valid at the start of this method. Somehow got $streamStatus."
+                                )
+                        }
                     destination.sendMessage(
-                        InputStreamComplete(
-                            DestinationRecordStreamComplete(it, System.currentTimeMillis())
-                        ),
-                        broadcast = true
+                        streamStatusMessage,
+                        broadcast = true,
                     )
                 }
             }
