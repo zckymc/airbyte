@@ -213,7 +213,6 @@ tutorials:
 
 | Version     | Date       | Pull Request                                               | Subject                                                                                                                                                                           |
 |:------------|:-----------|:-----------------------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 3.0.1 | 2025-06-04 | [61345](https://github.com/airbytehq/airbyte/pull/61345) | Better CSV validation for GCS |
 | 2.11.3 | 2025-06-02 | [61321](https://github.com/airbytehq/airbyte/pull/61321) | CHECK operation doesn't need to drop the dataset anymore. |
 | 2.11.2 | 2025-05-29 | [60986](https://github.com/airbytehq/airbyte/pull/60986) | CHECK operation uses configured default dataset instead of `airbyte_internal_test`. |
 | 2.11.1 | 2025-05-29 | [60973](https://github.com/airbytehq/airbyte/pull/60973) | Improve error recovery when a stream's sync mode and schema are both changed and the previous sync exited uncleanly. |
