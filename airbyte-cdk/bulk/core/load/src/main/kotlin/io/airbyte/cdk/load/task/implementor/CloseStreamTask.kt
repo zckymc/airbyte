@@ -5,11 +5,13 @@
 package io.airbyte.cdk.load.task.implementor
 
 import io.airbyte.cdk.load.command.DestinationStream
+import io.airbyte.cdk.load.state.StreamProcessingFailed
 import io.airbyte.cdk.load.state.SyncManager
 import io.airbyte.cdk.load.task.DestinationTaskLauncher
 import io.airbyte.cdk.load.task.SelfTerminating
 import io.airbyte.cdk.load.task.Task
 import io.airbyte.cdk.load.task.TerminalCondition
+import io.airbyte.cdk.load.write.StreamIncompleteException
 import jakarta.inject.Singleton
 
 class CloseStreamTask(
@@ -21,8 +23,15 @@ class CloseStreamTask(
 
     override suspend fun execute() {
         val streamLoader = syncManager.getOrAwaitStreamLoader(streamDescriptor)
+        val failure =
+            if (syncManager.getStreamManager(streamDescriptor).receivedStreamComplete()) {
+                null
+            } else {
+                StreamProcessingFailed(StreamIncompleteException())
+            }
         streamLoader.close(
             hadNonzeroRecords = syncManager.getStreamManager(streamDescriptor).hadNonzeroRecords(),
+            streamFailure = failure,
         )
         syncManager.getStreamManager(streamDescriptor).markProcessingSucceeded()
         taskLauncher.handleStreamClosed()

@@ -14,3 +14,5 @@ package io.airbyte.cdk.load.write
 class StreamsIncompleteException : Exception() {
     override val message = "Some streams were indicated as incomplete by upstream."
 }
+
+class StreamIncompleteException : Exception()
