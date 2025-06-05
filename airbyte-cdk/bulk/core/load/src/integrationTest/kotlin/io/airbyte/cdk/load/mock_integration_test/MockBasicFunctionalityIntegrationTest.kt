@@ -62,6 +62,15 @@ class MockBasicFunctionalityIntegrationTest :
         super.testTruncateRefresh()
     }
 
+    /**
+     * This test doesn't need to run on real connectors, since it's equivalent to
+     * [testTruncateRefresh]. But we should run it on the mock test to exercise the CDK.
+     */
+    @Test
+    fun testTruncateRefreshWithNoStatus() {
+        super.doTestTruncateRefresh(failingStreamStatus = null)
+    }
+
     @Test
     override fun testInterruptedTruncateWithPriorData() {
         super.testInterruptedTruncateWithPriorData()

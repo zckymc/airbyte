@@ -62,7 +62,7 @@ import io.airbyte.cdk.util.Jsons
 import io.airbyte.protocol.models.v0.AirbyteMessage
 import io.airbyte.protocol.models.v0.AirbyteRecordMessageFileReference
 import io.airbyte.protocol.models.v0.AirbyteRecordMessageMetaChange
-import io.airbyte.protocol.models.v0.AirbyteStreamStatusTraceMessage
+import io.airbyte.protocol.models.v0.AirbyteStreamStatusTraceMessage.AirbyteStreamStatus
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.LocalDate
@@ -853,6 +853,18 @@ abstract class BasicFunctionalityIntegrationTest(
 
     @Test
     open fun testTruncateRefresh() {
+        doTestTruncateRefresh(AirbyteStreamStatus.INCOMPLETE)
+    }
+
+    /**
+     * Utility method to run a sequence of syncs to exercise truncate refresh. "Real" connectors
+     * only need to run with `failingStreamStatus = INCOMPLETE`, because from connectors' POV,
+     * that's equivalent to `failingStreamStatus = null`.
+     *
+     * But we have this method available for the mock test, which is intended to exercise the CDK
+     * itself - and therefore should test both behaviors.
+     */
+    fun doTestTruncateRefresh(failingStreamStatus: AirbyteStreamStatus?) {
         assumeTrue(verifyDataWriting)
         fun makeStream(generationId: Long, minimumGenerationId: Long, syncId: Long) =
             DestinationStream(
@@ -892,7 +904,7 @@ abstract class BasicFunctionalityIntegrationTest(
                         checkpointId = checkpointKeyForMedium()?.checkpointId
                     )
                 ),
-                streamStatus = AirbyteStreamStatusTraceMessage.AirbyteStreamStatus.INCOMPLETE,
+                streamStatus = failingStreamStatus,
             )
         }
         dumpAndDiffRecords(
