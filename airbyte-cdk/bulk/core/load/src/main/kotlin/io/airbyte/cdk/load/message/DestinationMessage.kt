@@ -189,10 +189,7 @@ data class Meta(
         ): AirbyteValue {
             return if (extractedAtAsTimestampWithTimezone) {
                 TimestampWithTimezoneValue(
-                    OffsetDateTime.ofInstant(
-                        Instant.ofEpochMilli(emittedAtMs),
-                        ZoneOffset.UTC
-                    )
+                    OffsetDateTime.ofInstant(Instant.ofEpochMilli(emittedAtMs), ZoneOffset.UTC)
                 )
             } else {
                 IntegerValue(emittedAtMs)
