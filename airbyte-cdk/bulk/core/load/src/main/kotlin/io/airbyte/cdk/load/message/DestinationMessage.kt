@@ -31,6 +31,7 @@ import io.airbyte.cdk.load.message.CheckpointMessage.Checkpoint
 import io.airbyte.cdk.load.message.CheckpointMessage.Stats
 import io.airbyte.cdk.load.message.Meta.Companion.CHECKPOINT_ID_NAME
 import io.airbyte.cdk.load.message.Meta.Companion.CHECKPOINT_INDEX_NAME
+import io.airbyte.cdk.load.message.Meta.Companion.getEmittedAtMs
 import io.airbyte.cdk.load.state.CheckpointId
 import io.airbyte.cdk.load.state.CheckpointIndex
 import io.airbyte.cdk.load.state.CheckpointKey
@@ -181,6 +182,22 @@ data class Meta(
                     )
             }
         }
+
+        fun getEmittedAtMs(
+            emittedAtMs: Long,
+            extractedAtAsTimestampWithTimezone: Boolean
+        ): AirbyteValue {
+            return if (extractedAtAsTimestampWithTimezone) {
+                TimestampWithTimezoneValue(
+                    OffsetDateTime.ofInstant(
+                        Instant.ofEpochMilli(emittedAtMs),
+                        ZoneOffset.UTC
+                    )
+                )
+            } else {
+                IntegerValue(emittedAtMs)
+            }
+        }
     }
 
     fun asProtocolObject(): AirbyteRecordMessageMeta =
@@ -207,28 +224,10 @@ data class DestinationRecord(
 ) : DestinationRecordDomainMessage {
     override fun asProtocolMessage(): AirbyteMessage = message
 
-    fun asRecordMarshaledToAirbyteValue(): DestinationRecordAirbyteValue {
-        return DestinationRecordAirbyteValue(
-            stream,
-            message.record.data.toAirbyteValue(),
-            message.record.emittedAt,
-            Meta(
-                message.record.meta?.changes?.map { Meta.Change(it.field, it.change, it.reason) }
-                    ?: emptyList(),
-            ),
-        )
-    }
-
     fun asDestinationRecordRaw(): DestinationRecordRaw {
         return DestinationRecordRaw(stream, message, schema, serializedSizeBytes, checkpointId)
     }
 }
-
-/**
- * Represents a record already in its serialized state. The intended use is for conveying records
- * from stdin to the spill file, where reserialization is not necessary.
- */
-data class DestinationRecordSerialized(val stream: DestinationStream, val serialized: String)
 
 /** Represents a record both deserialized AND marshaled to airbyte value. The marshaling */
 data class DestinationRecordAirbyteValue(
@@ -288,16 +287,7 @@ data class EnrichedDestinationRecordAirbyteValue(
                     ),
                 Meta.COLUMN_NAME_AB_EXTRACTED_AT to
                     EnrichedAirbyteValue(
-                        if (extractedAtAsTimestampWithTimezone) {
-                            TimestampWithTimezoneValue(
-                                OffsetDateTime.ofInstant(
-                                    Instant.ofEpochMilli(emittedAtMs),
-                                    ZoneOffset.UTC
-                                )
-                            )
-                        } else {
-                            IntegerValue(emittedAtMs)
-                        },
+                        getEmittedAtMs(emittedAtMs, extractedAtAsTimestampWithTimezone),
                         Meta.AirbyteMetaFields.EXTRACTED_AT.type,
                         name = Meta.COLUMN_NAME_AB_EXTRACTED_AT,
                         airbyteMetaField = Meta.AirbyteMetaFields.EXTRACTED_AT,
